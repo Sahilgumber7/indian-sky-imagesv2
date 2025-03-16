@@ -5,6 +5,8 @@ import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabaseClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import Image from "next/image";
 
 type SkyImage = {
   id: number;
@@ -84,7 +86,7 @@ export default function MapView() {
         <DialogContent className="max-w-lg z-9999">
           <DialogHeader>Sky Image</DialogHeader>
           {selectedImage && (
-            <img
+            <Image
               src={selectedImage.image_url}
               alt="Sky"
               className="w-full h-auto object-cover rounded-lg"

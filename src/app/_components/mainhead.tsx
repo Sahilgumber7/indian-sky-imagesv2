@@ -9,14 +9,12 @@ export default function Mainhead({ isDialogOpen, setIsDialogOpen }: { isDialogOp
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [geoData, setGeoData] = useState<{ lat: number; lon: number } | null>(null);
-  const [error, setError] = useState<string>("");
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
 
   const resetDialog = () => {
     setSelectedImage(null);
     setPreview(null);
     setGeoData(null);
-    setError("");
     setUploadStatus(null);
   };
 
@@ -25,19 +23,26 @@ export default function Mainhead({ isDialogOpen, setIsDialogOpen }: { isDialogOp
     if (!file) return;
     setSelectedImage(file);
     setPreview(URL.createObjectURL(file));
-    setError("");
     setGeoData(null);
-    extractGeoData(file, setGeoData, setError);
+    extractGeoData(file, setGeoData, () => {}); // Error handling function is passed but not used here
   };
 
   const handleUpload = async () => {
-    await uploadImage(selectedImage, geoData, setUploadStatus, setSelectedImage, setPreview, setGeoData, setError, () => {
-      setUploadStatus("✅ Image uploaded successfully!");
-      setTimeout(() => {
-        resetDialog();
-        setIsDialogOpen(false);
-      }, 5000);
-    });
+    await uploadImage(
+      selectedImage,
+      geoData,
+      setUploadStatus,
+      setSelectedImage,
+      setPreview,
+      setGeoData,
+      () => {}, // Placeholder for error handling
+      closeDialog // Add the closeDialog function here
+    );
+  };
+
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+    resetDialog();
   };
 
   return (

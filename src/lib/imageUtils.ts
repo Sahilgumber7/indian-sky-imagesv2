@@ -8,9 +8,21 @@ export const convertDMSToDD = (dms: number[], direction: string): number => {
   return decimal;
 };
 
+// Define the type for EXIF data (you can adjust this based on EXIF data structure)
+interface EXIFData {
+  GPSLatitude?: number[];
+  GPSLongitude?: number[];
+  GPSLatitudeRef?: string;
+  GPSLongitudeRef?: string;
+}
+
 // Extract GeoData from image EXIF metadata
-export const extractGeoData = (file: File, setGeoData: (data: { lat: number; lon: number } | null) => void, setError: (error: string) => void) => {
-  EXIF.getData(file as any, function (this: any) {
+export const extractGeoData = (
+  file: File,
+  setGeoData: (data: { lat: number; lon: number } | null) => void,
+  setError: (error: string) => void
+) => {
+  EXIF.getData(file as any, function (this: EXIFData) {
     const lat = EXIF.getTag(this, "GPSLatitude") as number[] | undefined;
     const lon = EXIF.getTag(this, "GPSLongitude") as number[] | undefined;
     const latRef = EXIF.getTag(this, "GPSLatitudeRef") as string | undefined;
