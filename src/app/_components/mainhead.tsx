@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { extractGeoData, uploadImage } from "@/lib/imageUtils";
+import Image from "next/image";
 
 export default function Mainhead({ isDialogOpen, setIsDialogOpen }: { isDialogOpen: boolean; setIsDialogOpen: (open: boolean) => void }) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -61,7 +62,7 @@ export default function Mainhead({ isDialogOpen, setIsDialogOpen }: { isDialogOp
           <Input type="file" accept="image/*" onChange={handleImageChange} />
           {preview && (
             <div className="mt-4 flex flex-col items-center">
-              <img src={preview} alt="Preview" className="w-64 h-64 object-cover rounded-lg border" />
+              <Image src={preview} alt="Preview" className="w-64 h-64 object-cover rounded-lg border" />
               {geoData ? (
                 <p className="text-green-600 mt-2">
                   🌍 Location: {geoData.lat.toFixed(6)}, {geoData.lon.toFixed(6)}
