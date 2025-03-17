@@ -22,7 +22,7 @@ export const extractGeoData = (
   setGeoData: (data: { lat: number; lon: number } | null) => void,
   setError: (error: string) => void
 ) => {
-  EXIF.getData(file as any, function (this: EXIFData) {
+  EXIF.getData(file as any, function (this: EXIFData & { [key: string]: any }) {
     const lat = EXIF.getTag(this, "GPSLatitude") as number[] | undefined;
     const lon = EXIF.getTag(this, "GPSLongitude") as number[] | undefined;
     const latRef = EXIF.getTag(this, "GPSLatitudeRef") as string | undefined;
@@ -60,7 +60,7 @@ export const uploadImage = async (
   const fileName = `sky-images/${Date.now()}-${file.name}`;
 
   try {
-    const { data, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from("sky-images")
       .upload(fileName, file);
 
@@ -84,7 +84,7 @@ export const uploadImage = async (
     setPreview(null);
     setGeoData(null);
 
-    // Close the dialog after 5 seconds
+    // Close the dialog after 1 second
     setTimeout(() => closeDialog(), 1000);
   } catch (error) {
     console.error("Upload Failed:", error);
