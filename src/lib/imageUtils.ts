@@ -8,7 +8,7 @@ export const convertDMSToDD = (dms: number[], direction: string): number => {
   return decimal;
 };
 
-// Define the type for EXIF data (you can adjust this based on EXIF data structure)
+// Define the type for EXIF data
 interface EXIFData {
   GPSLatitude?: number[];
   GPSLongitude?: number[];
@@ -22,20 +22,28 @@ export const extractGeoData = (
   setGeoData: (data: { lat: number; lon: number } | null) => void,
   setError: (error: string) => void
 ) => {
-  EXIF.getData(file as any, function (this: EXIFData & { [key: string]: any }) {
-    const lat = EXIF.getTag(this, "GPSLatitude") as number[] | undefined;
-    const lon = EXIF.getTag(this, "GPSLongitude") as number[] | undefined;
-    const latRef = EXIF.getTag(this, "GPSLatitudeRef") as string | undefined;
-    const lonRef = EXIF.getTag(this, "GPSLongitudeRef") as string | undefined;
+  const reader = new FileReader();
 
-    if (lat && lon && latRef && lonRef) {
-      const latitude = convertDMSToDD(lat, latRef);
-      const longitude = convertDMSToDD(lon, lonRef);
-      setGeoData({ lat: latitude, lon: longitude });
-    } else {
-      setError("⚠️ This image does not contain location data.");
-    }
-  });
+  reader.onload = function () {
+    const arrayBuffer = reader.result;
+    
+    EXIF.getData(arrayBuffer as any, function (this: EXIFData) {
+      const lat = EXIF.getTag(this, "GPSLatitude") as number[] | undefined;
+      const lon = EXIF.getTag(this, "GPSLongitude") as number[] | undefined;
+      const latRef = EXIF.getTag(this, "GPSLatitudeRef") as string | undefined;
+      const lonRef = EXIF.getTag(this, "GPSLongitudeRef") as string | undefined;
+
+      if (lat && lon && latRef && lonRef) {
+        const latitude = convertDMSToDD(lat, latRef);
+        const longitude = convertDMSToDD(lon, lonRef);
+        setGeoData({ lat: latitude, lon: longitude });
+      } else {
+        setError("⚠️ This image does not contain location data.");
+      }
+    });
+  };
+
+  reader.readAsArrayBuffer(file);
 };
 
 // Handle Image Upload to Supabase
@@ -60,15 +68,17 @@ export const uploadImage = async (
   const fileName = `sky-images/${Date.now()}-${file.name}`;
 
   try {
-    const { error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
       .from("sky-images")
       .upload(fileName, file);
 
     if (uploadError) throw uploadError;
 
+    // Fetch the public URL
     const { data: publicUrlData } = supabase.storage.from("sky-images").getPublicUrl(fileName);
     const imageUrl = publicUrlData.publicUrl;
 
+    // Insert metadata into Supabase database
     const { error: dbError } = await supabase.from("images").insert([
       {
         image_url: imageUrl,
